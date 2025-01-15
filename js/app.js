@@ -12,7 +12,7 @@ const citasInterfaz = document.querySelector('#citas');
 
 //Parametros
 let editando = false;
-let esquema;
+let esquema; //Base de Datos
 
 //Objeto Campos
 const citaObj = {
@@ -53,8 +53,7 @@ class Notificacion {
 //--//
 class InterfaceUser {
     establecerCitas() {
-        //Base de Datos
-        getRegistros();
+        getRegistros(); //Base de Datos
 
         formularioCita.reset();
         this.reiniciarFormulario();
@@ -92,7 +91,7 @@ class InterfaceUser {
             email: '',
             fecha: '',
             sintomas: '',
-        })
+        });
     }
 }
 
@@ -104,7 +103,7 @@ const interfaceUser = new InterfaceUser();
 window.onload = () => {
     cargarEventos();
 
-    setDB();
+    setDB(); //Base de Datos
 }
 
 //--//
@@ -140,8 +139,7 @@ function submitCita(e) {
     }
 
     if(editando) {
-        //Base de datos
-        setEdicion({...citaObj});
+        setEdicion( {...citaObj} ); //Base de datos
         return;
     }
 
@@ -155,8 +153,7 @@ function submitCita(e) {
         btnEstado();
     }, 2000)
 
-    //Base de Datos
-    setRegistro({...citaObj});
+    setRegistro( {...citaObj} ); //Base de Datos
 }
 
 //--//
@@ -168,10 +165,10 @@ function generarID() {
 function setDB() {
     const baseDatos = window.indexedDB.open('clientes', 1);
 
-    baseDatos.onerror = () => console.log('ERROR: creación de Base de Datos');
+    baseDatos.onerror = () => console.log('ERROR: creación/acceso Base de Datos');
 
     baseDatos.onsuccess = () => {
-        console.log('EXITO: creación de Base de Datos');
+        console.log('EXITO: creación/acceso Base de Datos');
 
         esquema = baseDatos.result;
 
@@ -192,7 +189,7 @@ function setDB() {
         tabla.createIndex('fecha', 'fecha', { unique: false });
         tabla.createIndex('sintomas', 'sintomas', { unique: false });
 
-        console.log('EXITO: creación de Esquema');
+        console.log('EXITO: construcción Base de Datos');
     }
 }
 
@@ -213,14 +210,17 @@ function setRegistro(objRegistro) {
 
         btnEstado();
     }
+    
     setTransaccion.onerror = () => console.log('ERROR: Registro no establecido');
 }
 
 //--//
 function setEdicion(objRegistro) {
     const setTransaccion = esquema.transaction(['citas'], 'readwrite');
+
     const getTabla = setTransaccion.objectStore('citas');
-     getTabla.put(objRegistro);
+
+    getTabla.put(objRegistro);
 
     setTransaccion.oncomplete = () => {
         console.log("EXITO: Edición Guardada");
@@ -241,7 +241,9 @@ function setEdicion(objRegistro) {
 //--//
 function setEliminacion(citaId) {
     const setTransaccion = esquema.transaction(['citas'], 'readwrite');
+
     const getTabla = setTransaccion.objectStore('citas');
+
     getTabla.delete(citaId);
 
     setTransaccion.oncomplete = () => {
@@ -255,6 +257,7 @@ function setEliminacion(citaId) {
 //--//
 function getRegistros() {
     const setTransaccion = esquema.transaction(['citas']);
+
     const getTabla = setTransaccion.objectStore('citas');
 
     //.count(): Método que retorna la infomación general de los registros
@@ -278,7 +281,7 @@ function getRegistros() {
         const registro = e.target.result;
         
         if(registro) {
-            const {paciente, propietario, email, fecha, sintomas} = registro.value;
+            const { paciente, propietario, email, fecha, sintomas } = registro.value;
 
             const divCitas = document.createElement('div');
             divCitas.classList.add('mx-5', 'my-10', 'bg-white', 'shadow-md', 'px-5', 'py-10', 'roudend-xl');
@@ -332,7 +335,8 @@ function getRegistros() {
         
             citasInterfaz.appendChild(divCitas);
 
-            //.continue(): Metodo tipo 'next' para el objeto petición
+            //.continue(): Metodo tipo 'next' para el objeto cursor
+            //Debe de ser contenido dentro de un ambito ( Ej. If() )
             registro.continue();
         }
     }
@@ -341,9 +345,11 @@ function getRegistros() {
 function btnEstado() {
     if(formularioInput.classList.contains('cursor-pointer')) {
         formularioInput.classList.remove('cursor-pointer');
+        formularioInput.classList.remove('hover:bg-indigo-700');
         formularioInput.classList.add('cursor-not-allowed');
     } else {
         formularioInput.classList.remove('cursor-not-allowed');
         formularioInput.classList.add('cursor-pointer');
+        formularioInput.classList.add('hover:bg-indigo-700');
     }
 }
